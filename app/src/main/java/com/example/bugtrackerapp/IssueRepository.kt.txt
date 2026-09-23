@@ -1,0 +1,37 @@
+import kotlinx.coroutines.delay
+
+class IssueRepository(val dao: IssueDao, val api: IssueApi) {
+
+    suspend fun sync(): Boolean {
+        var success = true
+
+        // Push local unsynced issues to server (with retry)
+        dao.getUnsynced().forEach { issue ->
+            var attempts = 0
+            while (attempts < 3) {
+                try {
+                    if (issue.pendingDelete) {
+                        api.delete(issue.id)
+                    } else {
+                        api.create(issue)
+                    }
+                    dao.save(issue.copy(isSynced = true, pendingDelete = false))
+                    break
+                } catch (e: Exception) {
+                    attempts++
+                    delay(2000) // Wait 2 seconds before retrying
+                    if (attempts == 3) success = false
+                }
+            }
+        }
+
+        // Pull server changes down
+        try {
+            api.getIssues().forEach { dao.save(it.copy(isSynced = true)) }
+        } catch (e: Exception) {
+            success = false
+        }
+
+        return success
+    }
+}

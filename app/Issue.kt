@@ -1,0 +1,14 @@
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.util.UUID
+
+@Entity(tableName = "issues")
+data class Issue(
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val title: String,
+    val description: String,
+    val priority: String,
+    val status: String,
+    val creationDate: Long = System.currentTimeMillis(),
+    val isSynced: Boolean = false
+)
