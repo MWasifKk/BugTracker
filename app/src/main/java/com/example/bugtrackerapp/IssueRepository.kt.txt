@@ -1,3 +1,5 @@
+// Hotfix: added null safety check for API responses
+
 import kotlinx.coroutines.delay
 
 class IssueRepository(val dao: IssueDao, val api: IssueApi) {
